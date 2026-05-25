@@ -2,7 +2,7 @@
   "name": "Aicha Logistique",
   "short_name": "Aicha",
   "description": "Gestion de flotte de camions — Aicha Logistique",
-  "start_url": "/",
+  "start_url": "/aicha-logistique/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0F0F0F",
