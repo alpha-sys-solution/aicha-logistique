@@ -9,12 +9,13 @@
 // ============================================================
 
 // Variables initialisées après le chargement de la config
-let SUPABASE_URL = null;
-let SUPABASE_KEY = null;
-let sb = null; // client Supabase, initialisé dans initSupabase()
+const SUPABASE_URL = 'https://pyfspbekddnuobdaxhwi.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZnNwYmVrZGRudW9iZGF4aHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5Mjc4ODUsImV4cCI6MjA5NDUwMzg4NX0.tkVCCwahC4rgJXO7TxiAmoVQepIESwtiXzBzNrX_3aQ';
 
 const STORAGE_LICENCE = 'aicha_licence';
 const STORAGE_USER    = 'aicha_user';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /**
  * Charge la config depuis /api/config (Cloudflare Pages Function)
