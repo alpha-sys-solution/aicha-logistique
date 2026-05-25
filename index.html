@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0F0F0F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <title>Aicha Logistique</title>
+  <link rel="manifest" href="/manifest.json" />
+  <!-- PWA Meta tags -->
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    .login-section { display: none; }
+    .login-section.active { display: block; }
+    .code-display { display:flex;gap:8px;justify-content:center;margin-bottom:28px; }
+    .code-dot { width:14px;height:14px;border-radius:50%;border:2px solid #3A3A3C;background:transparent;transition:all .15s; }
+    .code-dot.rempli { background:var(--orange);border-color:var(--orange); }
+    .settings-item { background:var(--blanc);border-radius:var(--radius);padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow); }
+    .settings-item-left { display:flex;align-items:center;gap:14px; }
+    .settings-icone { width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem; }
+    .settings-icone.orange { background:rgba(249,115,22,0.12); }
+    .settings-icone.rouge  { background:rgba(239,68,68,0.10); }
+    .settings-icone.bleu   { background:rgba(59,130,246,0.10); }
+    .settings-icone.vert   { background:rgba(34,197,94,0.10); }
+    .settings-titre { font-weight:700;font-size:0.9rem; }
+    .settings-sous  { font-size:0.75rem;color:var(--gris-clair);margin-top:2px; }
+    .btn-settings-action { padding:8px 16px;border-radius:8px;border:none;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .2s; }
+    .btn-settings-action.orange { background:rgba(249,115,22,0.12);color:var(--orange); }
+    .btn-settings-action.rouge  { background:rgba(239,68,68,0.10);color:var(--rouge); }
+    .admin-login-form .form-input { background:#2C2C2E;border-color:#3A3A3C;color:#fff;margin-bottom:12px; }
+    .admin-login-form .form-input::placeholder { color:#636366; }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ══ ÉCRAN LICENCE ══════════════════════════════════════════ -->
+<div id="ecran-licence">
+  <div class="licence-card">
+    <div class="licence-logo" style="display:flex;justify-content:center;margin-bottom:8px">
+      <svg width="260" height="80" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="560" height="4" rx="2" fill="#F97316" opacity="0.5"/>
+        <rect x="4" y="28" width="130" height="76" rx="5" fill="#1C1C1E" stroke="#F97316" stroke-width="1.5"/>
+        <line x1="48" y1="28" x2="48" y2="104" stroke="#F97316" stroke-width="0.8" opacity="0.3"/>
+        <line x1="92" y1="28" x2="92" y2="104" stroke="#F97316" stroke-width="0.8" opacity="0.3"/>
+        <path d="M134,52 L134,104 L228,104 L228,40 L192,22 L134,22 Z" fill="#F97316"/>
+        <path d="M144,30 L144,82 L216,82 L216,44 L188,28 Z" fill="#0F0F0F" opacity="0.85"/>
+        <rect x="224" y="76" width="12" height="28" rx="2" fill="#1C1C1E"/>
+        <circle cx="230" cy="54" r="7" fill="#FFF8E0"/><circle cx="230" cy="54" r="4" fill="#FFF"/>
+        <circle cx="28" cy="104" r="16" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="28" cy="104" r="7" fill="#1C1C1E"/><circle cx="28" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="80" cy="104" r="16" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="80" cy="104" r="7" fill="#1C1C1E"/><circle cx="80" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="162" cy="104" r="16" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="162" cy="104" r="7" fill="#1C1C1E"/><circle cx="162" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="210" cy="104" r="16" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="210" cy="104" r="7" fill="#1C1C1E"/><circle cx="210" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <line x1="258" y1="16" x2="258" y2="132" stroke="#F97316" stroke-width="1.5" opacity="0.45"/>
+        <text x="276" y="86" font-family="Arial Narrow, Arial, sans-serif" font-size="64" font-weight="900" fill="#FFFFFF" letter-spacing="8">AICHA</text>
+        <text x="280" y="112" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#F97316" letter-spacing="12">LOGISTIQUE</text>
+      </svg>
+    </div>
+    <div class="licence-sub" style="margin-top:8px">Entrez votre clé de licence pour continuer</div>
+    <form id="form-licence">
+      <div class="form-group">
+        <input type="text" id="input-licence" class="form-input"
+          placeholder="Ex: AICHA-LOGI-155"
+          style="text-transform:uppercase;letter-spacing:2px;text-align:center;background:#2C2C2E;border-color:#3A3A3C;color:#fff"
+          autocomplete="off" />
+      </div>
+      <button type="submit" class="btn btn-primary">Valider la licence</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN LOGIN ════════════════════════════════════════════ -->
+<div id="ecran-login" class="hidden">
+  <div class="login-card">
+    <div class="login-logo" style="display:flex;justify-content:center;margin-bottom:4px">
+      <svg width="200" height="62" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="28" width="130" height="76" rx="5" fill="#1C1C1E" stroke="#F97316" stroke-width="1.5"/>
+        <line x1="48" y1="28" x2="48" y2="104" stroke="#F97316" stroke-width="0.8" opacity="0.3"/>
+        <line x1="92" y1="28" x2="92" y2="104" stroke="#F97316" stroke-width="0.8" opacity="0.3"/>
+        <path d="M134,52 L134,104 L228,104 L228,40 L192,22 L134,22 Z" fill="#F97316"/>
+        <path d="M144,30 L144,82 L216,82 L216,44 L188,28 Z" fill="#0F0F0F" opacity="0.85"/>
+        <rect x="224" y="76" width="12" height="28" rx="2" fill="#1C1C1E"/>
+        <circle cx="230" cy="54" r="7" fill="#FFF"/><circle cx="28" cy="104" r="14" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="28" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="80" cy="104" r="14" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="80" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="162" cy="104" r="14" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="162" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <circle cx="210" cy="104" r="14" fill="#0F0F0F" stroke="#F97316" stroke-width="2"/><circle cx="210" cy="104" r="3.5" fill="#F97316" opacity="0.7"/>
+        <line x1="258" y1="16" x2="258" y2="132" stroke="#F97316" stroke-width="1.5" opacity="0.45"/>
+        <text x="276" y="86" font-family="Arial Narrow, Arial, sans-serif" font-size="64" font-weight="900" fill="#FFFFFF" letter-spacing="8">AICHA</text>
+        <text x="280" y="112" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#F97316" letter-spacing="12">LOGISTIQUE</text>
+      </svg>
+    </div>
+    <div class="login-subtitle" id="nom-entreprise-login" style="margin-top:8px"></div>
+
+    <!-- Sélection rôle -->
+    <div class="select-role">
+      <button class="btn-role actif" data-role="gerant" onclick="selectRole(this)">👔 Gérant</button>
+      <button class="btn-role" data-role="admin" onclick="selectRole(this)">⚙️ Admin</button>
+    </div>
+
+    <!-- Section Gérant -->
+    <div id="section-gerant" class="login-section active">
+      <div class="code-display" id="dots-gerant">
+        <div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div>
+        <div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div>
+      </div>
+      <p class="text-sm" style="color:#636366;text-align:center;margin-bottom:16px">Code gérant à 6 chiffres</p>
+      <div class="clavier-pin" id="clavier-gerant">
+        <button class="touche-pin" data-val="1">1</button><button class="touche-pin" data-val="2">2</button><button class="touche-pin" data-val="3">3</button>
+        <button class="touche-pin" data-val="4">4</button><button class="touche-pin" data-val="5">5</button><button class="touche-pin" data-val="6">6</button>
+        <button class="touche-pin" data-val="7">7</button><button class="touche-pin" data-val="8">8</button><button class="touche-pin" data-val="9">9</button>
+        <button class="touche-pin vide" disabled></button><button class="touche-pin" data-val="0">0</button><button class="touche-pin effacer" data-val="effacer">⌫</button>
+      </div>
+    </div>
+
+    <!-- Section Admin -->
+    <div id="section-admin" class="login-section admin-login-form">
+      <div class="form-group">
+        <input type="text" id="admin-username" class="form-input" placeholder="Nom d'utilisateur" autocomplete="off" style="background:#2C2C2E;border-color:#3A3A3C;color:#fff" />
+      </div>
+      <div class="code-display" id="dots-admin">
+        <div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div>
+        <div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div>
+      </div>
+      <p class="text-sm" style="color:#636366;text-align:center;margin-bottom:16px">Code admin à 6 chiffres</p>
+      <div class="clavier-pin" id="clavier-admin">
+        <button class="touche-pin" data-val="1">1</button><button class="touche-pin" data-val="2">2</button><button class="touche-pin" data-val="3">3</button>
+        <button class="touche-pin" data-val="4">4</button><button class="touche-pin" data-val="5">5</button><button class="touche-pin" data-val="6">6</button>
+        <button class="touche-pin" data-val="7">7</button><button class="touche-pin" data-val="8">8</button><button class="touche-pin" data-val="9">9</button>
+        <button class="touche-pin vide" disabled></button><button class="touche-pin" data-val="0">0</button><button class="touche-pin effacer" data-val="effacer">⌫</button>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary text-sm" onclick="changerLicence()" style="margin-top:20px;padding:10px;width:100%">Changer de licence</button>
+  </div>
+</div>
+
+<!-- ══ APPLICATION GÉRANT ════════════════════════════════════ -->
+<div id="app" class="hidden">
+  <header class="app-header">
+    <div class="app-logo" style="display:flex;align-items:center">
+      <svg width="100" height="26" viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="8" width="56" height="34" rx="3" fill="#1C1C1E" stroke="#F97316" stroke-width="1.2"/>
+        <line x1="21" y1="8" x2="21" y2="42" stroke="#F97316" stroke-width="0.6" opacity="0.3"/>
+        <line x1="40" y1="8" x2="40" y2="42" stroke="#F97316" stroke-width="0.6" opacity="0.3"/>
+        <path d="M58,18 L58,42 L100,42 L100,15 L83,6 L58,6 Z" fill="#F97316"/>
+        <path d="M63,10 L63,34 L93,34 L93,17 L81,9 Z" fill="#0F0F0F" opacity="0.85"/>
+        <rect x="98" y="32" width="5" height="10" rx="1" fill="#1C1C1E"/>
+        <circle cx="101" cy="22" r="3" fill="#FFF" opacity="0.95"/>
+        <circle cx="13" cy="42" r="7" fill="#0F0F0F" stroke="#F97316" stroke-width="1.2"/><circle cx="13" cy="42" r="3" fill="#F97316" opacity="0.7"/>
+        <circle cx="40" cy="42" r="7" fill="#0F0F0F" stroke="#F97316" stroke-width="1.2"/><circle cx="40" cy="42" r="3" fill="#F97316" opacity="0.7"/>
+        <circle cx="73" cy="42" r="7" fill="#0F0F0F" stroke="#F97316" stroke-width="1.2"/><circle cx="73" cy="42" r="3" fill="#F97316" opacity="0.7"/>
+        <circle cx="90" cy="42" r="7" fill="#0F0F0F" stroke="#F97316" stroke-width="1.2"/><circle cx="90" cy="42" r="3" fill="#F97316" opacity="0.7"/>
+        <line x1="115" y1="5" x2="115" y2="58" stroke="#F97316" stroke-width="1" opacity="0.4"/>
+        <text x="124" y="36" font-family="Arial Narrow, Arial, sans-serif" font-size="26" font-weight="900" fill="#FFFFFF" letter-spacing="3">AICHA</text>
+        <text x="126" y="50" font-family="Arial, sans-serif" font-size="7.5" font-weight="700" fill="#F97316" letter-spacing="5">LOGISTIQUE</text>
+      </svg>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="user-badge">
+        <div class="role-dot" id="role-dot" style="background:var(--bleu)"></div>
+        <span id="user-nom">—</span>
+        <span id="user-role-badge" style="font-size:0.7rem;color:var(--gris-clair)"></span>
+      </div>
+      <button class="btn-deconnexion" id="btn-deconnexion" title="Déconnexion">⏻</button>
+    </div>
+  </header>
+
+  <main class="contenu">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page">
+      <h1 class="page-titre">Tableau de bord <span id="mois-label" style="font-size:1rem;color:var(--gris-clair)"></span></h1>
+      <div id="dashboard-camion-selector"></div>
+      <div class="stats-grid">
+        <div class="stat-card vert"><div class="stat-label">Revenus</div><div class="stat-value" id="stat-revenus-mois">—</div></div>
+        <div class="stat-card rouge"><div class="stat-label">Dépenses</div><div class="stat-value" id="stat-depenses-mois">—</div></div>
+        <div class="stat-card orange"><div class="stat-label">Bénéfice</div><div class="stat-value" id="stat-benefice-mois">—</div></div>
+        <div class="stat-card"><div class="stat-label">En cours</div><div class="stat-value" id="stat-courses-encours">—</div></div>
+      </div>
+      <div class="section-header">
+        <div class="section-titre">Dernières courses</div>
+        <button class="btn btn-secondary btn-sm" onclick="afficherOngletNav('courses')">Voir tout</button>
+      </div>
+      <div id="dernieres-courses"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Courses -->
+    <div id="page-courses" class="page hidden">
+      <h1 class="page-titre">Courses du mois</h1>
+      <div id="courses-camion-selector"></div>
+      <div id="liste-courses"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Dépenses -->
+    <div id="page-depenses" class="page hidden">
+      <h1 class="page-titre">Dépenses du mois</h1>
+      <div id="depenses-camion-selector"></div>
+      <div id="liste-depenses"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Validation -->
+    <div id="page-validation" class="page hidden">
+      <h1 class="page-titre">Validation mensuelle</h1>
+      <div id="page-validation-content"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Paramètres -->
+    <div id="page-parametres" class="page hidden">
+      <h1 class="page-titre">Paramètres</h1>
+      <div id="notif-container"></div>
+      <div class="settings-item">
+        <div class="settings-item-left"><div class="settings-icone orange">🔑</div>
+          <div><div class="settings-titre">Changer mon code</div><div class="settings-sous">Modifier votre code de connexion</div></div>
+        </div>
+        <button class="btn-settings-action orange" onclick="ouvrirModalChangerCode()">Modifier</button>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-left"><div class="settings-icone bleu">🔄</div>
+          <div><div class="settings-titre">Vider le cache</div><div class="settings-sous">Récupérer les dernières mises à jour</div></div>
+        </div>
+        <button class="btn-settings-action orange" onclick="confirmerViderCache()">Actualiser</button>
+      </div>
+      <div class="settings-item" style="margin-top:24px">
+        <div class="settings-item-left"><div class="settings-icone rouge">⏻</div>
+          <div><div class="settings-titre">Se déconnecter</div><div class="settings-sous">Retour à l'écran de connexion</div></div>
+        </div>
+        <button class="btn-settings-action rouge" onclick="document.getElementById('btn-deconnexion').click()">Quitter</button>
+      </div>
+      <div style="text-align:center;margin-top:32px;color:var(--gris-clair);font-size:0.75rem">
+        Aicha Logistique · v2.0<br><span id="param-licence-info"></span>
+      </div>
+    </div>
+
+  </main>
+
+  <button class="fab" id="fab-nouvelle-course" title="Nouvelle course">+</button>
+  <button class="fab hidden" id="fab-nouvelle-depense" title="Nouvelle dépense">+</button>
+
+  <nav class="nav-bas">
+    <button class="nav-item actif" data-onglet="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Accueil
+    </button>
+    <button class="nav-item" data-onglet="courses">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Courses
+    </button>
+    <button class="nav-item" data-onglet="depenses">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Dépenses
+    </button>
+    <button class="nav-item" data-onglet="validation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Validation
+    </button>
+    <button class="nav-item" data-onglet="parametres">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Paramètres
+    </button>
+  </nav>
+</div>
+
+<!-- MODALS -->
+<!-- Modal Nouvelle Course -->
+<div id="modal-course-overlay" class="modal-overlay hidden">
+  <div id="modal-course" class="modal">
+    <div style="position:relative"><h2 class="modal-titre" id="modal-course-titre">Nouvelle course</h2><button class="modal-fermer" id="btn-fermer-course">✕</button></div>
+    <form id="form-course">
+      <div class="form-group"><label class="form-label">Camion <span class="requis">*</span></label><select class="form-select" id="course-camion"></select></div>
+      <div class="form-group"><label class="form-label">Date <span class="requis">*</span></label><input type="date" class="form-input" id="course-date" /></div>
+      <div class="form-group"><label class="form-label">Point de départ <span class="requis">*</span></label><input type="text" class="form-input" id="course-depart" placeholder="Ex: Conakry centre" /></div>
+      <div class="form-group"><label class="form-label">Destination <span class="requis">*</span></label><input type="text" class="form-input" id="course-arrivee" placeholder="Ex: Kindia" /></div>
+      <div class="form-group"><label class="form-label">Client</label><input type="text" class="form-input" id="course-client" placeholder="Nom du client" /></div>
+      <div class="form-group"><label class="form-label">Marchandise</label><input type="text" class="form-input" id="course-marchandise" placeholder="Ex: Ciment, riz…" /></div>
+      <div class="form-group"><label class="form-label">Montant facturé (FG)</label><input type="number" class="form-input" id="course-montant" placeholder="0" min="0" /></div>
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Détail Course -->
+<div id="modal-detail-course-overlay" class="modal-overlay hidden">
+  <div id="modal-detail-course" class="modal">
+    <div style="position:relative"><h2 class="modal-titre" id="detail-course-titre">Détail course</h2><button class="modal-fermer" id="btn-fermer-detail-course">✕</button></div>
+    <div id="detail-course-info"></div>
+    <div id="detail-course-actions" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- Modal Nouvelle Dépense -->
+<div id="modal-depense-overlay" class="modal-overlay hidden">
+  <div id="modal-depense" class="modal">
+    <div style="position:relative"><h2 class="modal-titre" id="modal-depense-titre">Nouvelle dépense</h2><button class="modal-fermer" id="btn-fermer-depense">✕</button></div>
+    <form id="form-depense">
+      <div class="form-group"><label class="form-label">Camion <span class="requis">*</span></label><select class="form-select" id="depense-camion"></select></div>
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="depense-date" /></div>
+      <div class="form-group"><label class="form-label">Catégorie <span class="requis">*</span></label>
+        <select class="form-select" id="depense-categorie">
+          <option value="carburant">⛽ Carburant</option><option value="reparation">🔧 Réparation / Panne</option>
+          <option value="peage">🛣️ Péage</option><option value="repas">🍽️ Repas</option><option value="autre">📦 Autre</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Montant (FG) <span class="requis">*</span></label><input type="number" class="form-input" id="depense-montant" placeholder="0" min="0" /><div class="form-help">Photo obligatoire si montant &gt; 500 000 FG</div></div>
+      <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="depense-description" placeholder="Précisez si nécessaire" /></div>
+      <div class="form-group">
+        <label class="form-label" id="photo-label">📷 Photo du reçu (optionnel)</label>
+        <div class="zone-photo" id="zone-photo">
+          <div id="zone-photo-placeholder"><div class="icone-upload">📷</div><p>Appuyez pour prendre une photo</p></div>
+          <img id="photo-preview" class="photo-preview" alt="Aperçu" style="display:none;width:100%;border-radius:8px;max-height:220px;object-fit:cover" />
+        </div>
+        <input type="file" id="depense-photo-input" accept="image/*" capture="environment" style="display:none" />
+      </div>
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Détail Dépense -->
+<div id="modal-detail-depense-overlay" class="modal-overlay hidden">
+  <div id="modal-detail-depense" class="modal">
+    <div style="position:relative"><h2 class="modal-titre">Détail dépense</h2><button class="modal-fermer" id="btn-fermer-detail-depense">✕</button></div>
+    <div id="detail-depense-info"></div>
+    <div id="detail-depense-actions" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- Modal Demande Modification -->
+<div id="modal-demande-modif" class="modal-overlay centree hidden">
+  <div class="modal-centree">
+    <h2 class="modal-titre">Demande de modification</h2>
+    <p class="text-sm" style="color:var(--gris-clair);margin-bottom:16px">Expliquez pourquoi vous souhaitez modifier cet élément.</p>
+    <form id="form-demande-modif">
+      <input type="hidden" id="demande-type" /><input type="hidden" id="demande-element-id" />
+      <div class="form-group"><label class="form-label">Motif <span class="requis">*</span></label><textarea class="form-textarea" id="demande-motif" placeholder="Expliquez la raison…"></textarea></div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Envoyer</button>
+      <button type="button" class="btn btn-secondary" id="btn-fermer-demande">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Changer Code Gérant -->
+<div id="modal-changer-code" class="modal-overlay centree hidden">
+  <div class="modal-centree">
+    <h2 class="modal-titre">🔑 Changer mon code</h2>
+    <form id="form-changer-code">
+      <div class="form-group"><label class="form-label">Ancien code (6 chiffres)</label><input type="password" class="form-input" id="ancien-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+      <div class="form-group"><label class="form-label">Nouveau code (6 chiffres)</label><input type="password" class="form-input" id="nouveau-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+      <div class="form-group"><label class="form-label">Confirmer le nouveau code</label><input type="password" class="form-input" id="confirmer-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Changer le code</button>
+      <button type="button" class="btn btn-secondary" onclick="fermerModalChangerCode()">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Confirmer Vider Cache -->
+<div id="modal-confirmer-cache" class="modal-overlay centree hidden">
+  <div class="modal-centree" style="text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:12px">🔄</div>
+    <h2 class="modal-titre" style="text-align:center">Vider le cache ?</h2>
+    <p class="text-sm" style="color:var(--gris-clair);margin-bottom:24px">Cela va récupérer les dernières mises à jour. Votre licence est conservée.</p>
+    <button class="btn btn-primary" style="margin-bottom:8px" onclick="executerViderCache()">✅ Confirmer</button>
+    <button class="btn btn-secondary" onclick="fermerConfirmerCache()">Annuler</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/offline-queue.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/app.js"></script>
+<script>
+// ── Login state ──────────────────────────────────────────────
+let roleLogin = 'gerant';
+let codeSaisi = '';
+const MAX_CODE = 6;
+
+function selectRole(btn) {
+  document.querySelectorAll('.btn-role').forEach(b => b.classList.remove('actif'));
+  btn.classList.add('actif');
+  roleLogin = btn.dataset.role;
+  codeSaisi = '';
+  updateDotsAffichage();
+  document.getElementById('section-gerant').classList.toggle('active', roleLogin === 'gerant');
+  document.getElementById('section-admin').classList.toggle('active', roleLogin === 'admin');
+  if (roleLogin === 'admin') document.getElementById('admin-username').focus();
+}
+
+document.querySelectorAll('#clavier-gerant .touche-pin').forEach(t => {
+  t.addEventListener('click', () => {
+    if (roleLogin !== 'gerant') return;
+    if (t.dataset.val === 'effacer') codeSaisi = codeSaisi.slice(0, -1);
+    else if (codeSaisi.length < MAX_CODE) codeSaisi += t.dataset.val;
+    updateDotsAffichage();
+    if (codeSaisi.length === MAX_CODE) setTimeout(soumettreCode, 200);
+  });
+});
+
+document.querySelectorAll('#clavier-admin .touche-pin').forEach(t => {
+  t.addEventListener('click', () => {
+    if (roleLogin !== 'admin') return;
+    if (t.dataset.val === 'effacer') codeSaisi = codeSaisi.slice(0, -1);
+    else if (codeSaisi.length < MAX_CODE) codeSaisi += t.dataset.val;
+    updateDotsAffichage();
+    if (codeSaisi.length === MAX_CODE) setTimeout(soumettreCode, 200);
+  });
+});
+
+function updateDotsAffichage() {
+  const dotsId = roleLogin === 'admin' ? 'dots-admin' : 'dots-gerant';
+  document.querySelectorAll(`#${dotsId} .code-dot`).forEach((dot, i) => {
+    dot.classList.toggle('rempli', i < codeSaisi.length);
+  });
+}
+
+async function soumettreCode() {
+  let user = null;
+  if (roleLogin === 'admin') {
+    const username = document.getElementById('admin-username').value;
+    user = await connexionAdmin(username, codeSaisi);
+  } else {
+    user = await connexionGerant(codeSaisi);
+  }
+
+  if (!user) {
+    toast('Code incorrect', 'error');
+    codeSaisi = ''; updateDotsAffichage(); return;
+  }
+
+  if (user.role === 'admin') { window.location.href = 'admin/index.html'; return; }
+  await demarrerAppGerant();
+}
+
+document.getElementById('form-licence').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const cle = document.getElementById('input-licence').value;
+  const btn = e.target.querySelector('button');
+  btn.textContent = 'Vérification…'; btn.disabled = true;
+  const ok = await activerLicence(cle);
+  if (ok) {
+    document.getElementById('nom-entreprise-login').textContent = State.nomEntreprise;
+    afficherEcran('ecran-login');
+  } else {
+    toast('Clé invalide ou expirée', 'error');
+    btn.textContent = 'Valider la licence'; btn.disabled = false;
+  }
+});
+
+function changerLicence() { localStorage.removeItem('aicha_licence'); location.reload(); }
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => reg.update()).catch(() => {});
+}
+</script>
+</body>
+</html>

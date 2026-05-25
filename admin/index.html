@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aicha Logistique — Admin</title>
+  <link rel="stylesheet" href="../css/app.css" />
+  <style>
+    .admin-layout { display:flex;min-height:100vh; }
+    .sidebar { width:240px;background:var(--noir);padding:24px 0;position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;transition:transform .3s; }
+    .sidebar-logo { padding:0 16px 20px;border-bottom:1px solid var(--gris-moyen); }
+    .sidebar-nav { flex:1;padding:16px 0; }
+    .sidebar-item { display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--gris-clair);font-size:0.9rem;font-weight:500;cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left; }
+    .sidebar-item:hover { color:var(--blanc);background:rgba(255,255,255,0.05); }
+    .sidebar-item.actif { color:var(--orange);background:rgba(249,115,22,0.1);border-left:3px solid var(--orange); }
+    .sidebar-item .icone { font-size:1.1rem;width:20px;text-align:center; }
+    .sidebar-footer { padding:16px 20px;border-top:1px solid var(--gris-moyen); }
+    .admin-content { margin-left:240px;flex:1;padding:28px; }
+    .admin-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px; }
+    .admin-header h1 { font-family:var(--font-titre);font-size:1.8rem;font-weight:800; }
+    .badge-demande { display:inline-block;background:var(--orange);color:var(--blanc);border-radius:50%;width:18px;height:18px;font-size:0.7rem;font-weight:700;text-align:center;line-height:18px; }
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.ouverte { transform:translateX(0); }
+      .admin-content { margin-left:0;padding:16px; }
+      .mobile-menu-btn { display:flex !important; }
+    }
+    .mobile-menu-btn { display:none;background:var(--noir);color:var(--blanc);border:none;padding:10px;border-radius:8px;font-size:1.2rem;cursor:pointer; }
+    .overlay-sidebar { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99; }
+    .filtre-mois-annee { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
+    .filtre-mois-annee select { padding:8px 12px;border-radius:8px;border:1.5px solid #E0E0D8;font-size:0.85rem;background:var(--blanc); }
+    /* Tableau validation */
+    .validation-table { width:100%;border-collapse:collapse;background:var(--blanc);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow); }
+    .validation-table th { background:var(--noir);color:var(--blanc);padding:12px 16px;text-align:left;font-size:0.85rem; }
+    .validation-table td { padding:12px 16px;border-bottom:1px solid #F0F0EC;font-size:0.85rem;vertical-align:middle; }
+    .validation-table tr:last-child td { border-bottom:none; }
+    .input-inline { border:1.5px solid #E0E0D8;border-radius:6px;padding:6px 10px;font-size:0.85rem;width:100%;max-width:150px; }
+    /* Camion bilan card */
+    .camion-bilan-card { background:var(--blanc);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);border-left:4px solid var(--orange); }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" class="toast-container"></div>
+<div class="overlay-sidebar" id="overlay-sidebar" onclick="fermerSidebar()"></div>
+
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="176" height="44" viewBox="0 0 352 88" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="12" width="80" height="46" rx="3" fill="#1C1C1E" stroke="#F97316" stroke-width="1.2"/>
+        <line x1="29" y1="12" x2="29" y2="58" stroke="#F97316" stroke-width="0.7" opacity="0.3"/>
+        <line x1="56" y1="12" x2="56" y2="58" stroke="#F97316" stroke-width="0.7" opacity="0.3"/>
+        <path d="M82,24 L82,58 L132,58 L132,20 L114,10 L82,10 Z" fill="#F97316"/>
+        <path d="M88,14 L88,46 L125,46 L125,22 L112,12 Z" fill="#0F0F0F" opacity="0.85"/>
+        <rect x="129" y="44" width="7" height="14" rx="1" fill="#1C1C1E"/>
+        <circle cx="133" cy="30" r="4" fill="#FFF" opacity="0.95"/>
+        <circle cx="18" cy="58" r="9" fill="#0F0F0F" stroke="#F97316" stroke-width="1.5"/><circle cx="18" cy="58" r="4" fill="#F97316" opacity="0.7"/>
+        <circle cx="54" cy="58" r="9" fill="#0F0F0F" stroke="#F97316" stroke-width="1.5"/><circle cx="54" cy="58" r="4" fill="#F97316" opacity="0.7"/>
+        <circle cx="100" cy="58" r="9" fill="#0F0F0F" stroke="#F97316" stroke-width="1.5"/><circle cx="100" cy="58" r="4" fill="#F97316" opacity="0.7"/>
+        <circle cx="120" cy="58" r="9" fill="#0F0F0F" stroke="#F97316" stroke-width="1.5"/><circle cx="120" cy="58" r="4" fill="#F97316" opacity="0.7"/>
+        <line x1="150" y1="8" x2="150" y2="72" stroke="#F97316" stroke-width="1" opacity="0.4"/>
+        <text x="160" y="48" font-family="Arial Narrow, Arial, sans-serif" font-size="32" font-weight="900" fill="#FFFFFF" letter-spacing="3">AICHA</text>
+        <text x="162" y="64" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#F97316" letter-spacing="5">LOGISTIQUE</text>
+      </svg>
+      <small id="admin-entreprise" style="display:block;color:#636366;font-size:0.7rem;margin-top:4px;padding-left:2px">Administration</small>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-item actif" data-page="dashboard"><span class="icone">📊</span> Tableau de bord</button>
+      <button class="sidebar-item" data-page="camions"><span class="icone">🚛</span> Camions</button>
+      <button class="sidebar-item" data-page="gerant"><span class="icone">👔</span> Gérant</button>
+      <button class="sidebar-item" data-page="courses"><span class="icone">📦</span> Toutes les courses</button>
+      <button class="sidebar-item" data-page="depenses"><span class="icone">💸</span> Toutes les dépenses</button>
+      <button class="sidebar-item" data-page="validations"><span class="icone">📋</span> Validations <span class="badge-demande hidden" id="nb-validations">0</span></button>
+      <button class="sidebar-item" data-page="clotures"><span class="icone">📅</span> Clôtures annuelles</button>
+      <button class="sidebar-item" data-page="parametres"><span class="icone">⚙️</span> Paramètres</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-secondary btn-sm w-full" onclick="confirmerViderCacheAdmin()" style="margin-bottom:8px">🔄 Vider le cache</button>
+      <button class="btn btn-secondary btn-sm w-full" onclick="deconnexionAdmin()">⏻ Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="admin-content">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="mobile-menu-btn" onclick="ouvrirSidebar()">☰</button>
+    </div>
+
+    <!-- ── Dashboard ─────────────────────────────────── -->
+    <div id="page-dashboard" class="admin-page">
+      <div class="admin-header">
+        <h1>Tableau de bord</h1>
+        <div class="filtre-mois-annee">
+          <select id="filtre-annee" onchange="rafraichirDashboard()"></select>
+          <select id="filtre-periode" onchange="rafraichirDashboard()">
+            <option value="mois">Par mois</option>
+            <option value="semestre1">Semestre 1</option>
+            <option value="semestre2">Semestre 2</option>
+            <option value="annee">Année entière</option>
+          </select>
+          <select id="filtre-mois" onchange="rafraichirDashboard()">
+            <option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option>
+            <option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option>
+            <option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option>
+            <option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+          </select>
+        </div>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:24px">
+        <div class="stat-card vert"><div class="stat-label">Total revenus</div><div class="stat-value" id="admin-total-revenus">—</div></div>
+        <div class="stat-card rouge"><div class="stat-label">Total dépenses</div><div class="stat-value" id="admin-total-depenses">—</div></div>
+        <div class="stat-card orange"><div class="stat-label">Bénéfice net</div><div class="stat-value" id="admin-benefice">—</div></div>
+        <div class="stat-card"><div class="stat-label">Courses en attente</div><div class="stat-value" id="admin-en-attente">—</div></div>
+      </div>
+      <div class="section-header"><div class="section-titre">📊 Bilan par camion</div></div>
+      <div id="bilan-camions"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Camions ─────────────────────────────────────── -->
+    <div id="page-camions" class="admin-page hidden">
+      <div class="admin-header"><h1>Camions</h1><button class="btn btn-primary btn-sm" onclick="ouvrirModalCamion()">+ Ajouter</button></div>
+      <div id="liste-admin-camions"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Gérant ─────────────────────────────────────── -->
+    <div id="page-gerant" class="admin-page hidden">
+      <div class="admin-header"><h1>Gérant</h1><button class="btn btn-primary btn-sm" onclick="ouvrirModalGerant()">+ Créer gérant</button></div>
+      <div id="liste-admin-gerant"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Courses ─────────────────────────────────────── -->
+    <div id="page-courses" class="admin-page hidden">
+      <div class="admin-header">
+        <h1>Toutes les courses</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="form-select" id="filtre-camion-course" style="width:auto" onchange="filtrerCourses()"><option value="">Tous les camions</option></select>
+          <select class="form-select" id="filtre-statut-course" style="width:auto" onchange="filtrerCourses()">
+            <option value="">Tous statuts</option><option value="en_cours">En cours</option><option value="livree">Livrée</option><option value="payee">Payée</option>
+          </select>
+        </div>
+      </div>
+      <div id="liste-admin-courses"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Dépenses ─────────────────────────────────────── -->
+    <div id="page-depenses" class="admin-page hidden">
+      <div class="admin-header">
+        <h1>Toutes les dépenses</h1>
+        <select class="form-select" id="filtre-camion-depense" style="width:auto" onchange="filtrerDepenses()"><option value="">Tous les camions</option></select>
+      </div>
+      <div id="liste-admin-depenses"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Validations mensuelles ──────────────────────── -->
+    <div id="page-validations" class="admin-page hidden">
+      <div class="admin-header">
+        <h1>Validations mensuelles</h1>
+        <div class="filtre-mois-annee">
+          <select id="valid-annee" onchange="chargerAdminValidations()"></select>
+          <select id="valid-mois" onchange="chargerAdminValidations()">
+            <option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option>
+            <option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option>
+            <option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option>
+            <option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+          </select>
+        </div>
+      </div>
+      <div id="liste-validations"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Clôtures annuelles ─────────────────────────── -->
+    <div id="page-clotures" class="admin-page hidden">
+      <div class="admin-header"><h1>Clôtures annuelles</h1></div>
+      <div id="liste-clotures"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ── Paramètres ─────────────────────────────────── -->
+    <div id="page-parametres" class="admin-page hidden">
+      <div class="admin-header"><h1>Paramètres</h1></div>
+      <div class="card" style="max-width:480px;margin-bottom:16px">
+        <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">🔔 Notifications push</h2>
+        <p style="font-size:0.82rem;color:var(--gris-clair);margin-bottom:16px">Recevez les alertes en temps réel.</p>
+        <div id="notif-container-admin"></div>
+      </div>
+      <div class="card" style="max-width:480px;margin-bottom:16px">
+        <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">🔑 Changer mon code</h2>
+        <p style="font-size:0.82rem;color:var(--gris-clair);margin-bottom:20px">Code de connexion administrateur (6 chiffres).</p>
+        <form id="form-changer-code-admin">
+          <div class="form-group"><label class="form-label">Ancien code</label><input type="password" class="form-input" id="admin-ancien-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+          <div class="form-group"><label class="form-label">Nouveau code</label><input type="password" class="form-input" id="admin-nouveau-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+          <div class="form-group"><label class="form-label">Confirmer</label><input type="password" class="form-input" id="admin-confirmer-code" maxlength="6" inputmode="numeric" placeholder="••••••" /></div>
+          <button type="submit" class="btn btn-primary btn-sm">Changer le code</button>
+        </form>
+      </div>
+      <div class="card" style="max-width:480px;background:var(--fond)">
+        <p style="font-size:0.8rem;color:var(--gris-clair)">
+          <strong>Utilisateur :</strong> <span id="param-admin-username">—</span><br>
+          <strong>Licence :</strong> <span id="param-admin-licence">—</span>
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Camion -->
+<div id="modal-camion-overlay" class="modal-overlay centree hidden">
+  <div class="modal-centree">
+    <h2 class="modal-titre" id="modal-camion-titre">Nouveau camion</h2>
+    <form id="form-camion">
+      <div class="form-group"><label class="form-label">Immatriculation <span class="requis">*</span></label><input type="text" class="form-input" id="camion-immat" placeholder="RC-1234-C" style="text-transform:uppercase" /></div>
+      <div class="form-group"><label class="form-label">Marque</label><input type="text" class="form-input" id="camion-marque" placeholder="Mercedes, MAN…" /></div>
+      <div class="form-group"><label class="form-label">Modèle</label><input type="text" class="form-input" id="camion-modele" /></div>
+      <div class="form-group"><label class="form-label">Année</label><input type="number" class="form-input" id="camion-annee" placeholder="2018" /></div>
+      <div class="form-group"><label class="form-label">Statut</label>
+        <select class="form-select" id="camion-statut">
+          <option value="actif">✅ Actif</option><option value="maintenance">🔧 Maintenance</option><option value="panne">❌ Panne</option><option value="inactif">⏸️ Inactif</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Enregistrer</button>
+      <button type="button" class="btn btn-secondary" onclick="fermerModalCamion()">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Gérant -->
+<div id="modal-gerant-overlay" class="modal-overlay centree hidden">
+  <div class="modal-centree">
+    <h2 class="modal-titre" id="modal-gerant-titre">Créer un gérant</h2>
+    <form id="form-gerant">
+      <div class="form-group"><label class="form-label">Nom <span class="requis">*</span></label><input type="text" class="form-input" id="gerant-nom" /></div>
+      <div class="form-group"><label class="form-label">Prénom</label><input type="text" class="form-input" id="gerant-prenom" /></div>
+      <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" class="form-input" id="gerant-tel" placeholder="+224 6XX XXX XXX" /></div>
+      <div class="form-group"><label class="form-label">Code PIN (6 chiffres) <span class="requis">*</span></label><input type="password" class="form-input" id="gerant-pin" maxlength="6" placeholder="••••••" pattern="[0-9]{6}" inputmode="numeric" /><div class="form-help">Le gérant utilisera ce code pour se connecter</div></div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Enregistrer</button>
+      <button type="button" class="btn btn-secondary" onclick="fermerModalGerant()">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Validation Mois -->
+<div id="modal-validation-overlay" class="modal-overlay centree hidden">
+  <div class="modal-centree" style="max-width:600px">
+    <h2 class="modal-titre" id="modal-validation-titre">Validation du mois</h2>
+    <div id="modal-validation-content"></div>
+    <div style="margin-top:16px">
+      <div class="form-group"><label class="form-label">Note pour le gérant (optionnel)</label><textarea class="form-textarea" id="validation-notes" placeholder="Commentaire ou correction…"></textarea></div>
+      <button class="btn btn-primary" style="margin-bottom:8px" onclick="confirmerValidationMois()">✅ Valider ce mois</button>
+      <button class="btn btn-secondary" onclick="fermerModalValidation()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/offline-queue.js"></script>
+<script src="../js/notifications.js"></script>
+<script>
+
+let camionEnEdition = null;
+let gerantEnEdition = null;
+let validationEnCours = null;
+let toutesLesCoursesAdmin = [];
+let toutesLesDepensesAdmin = [];
+
+// ── INIT ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Charger la config Supabase depuis /api/config
+  const configOk = await initSupabase();
+  if (!configOk) { window.location.href = '../index.html'; return; }
+
+  const licenceOk = await verifierAuDemarrage();
+  if (!licenceOk) { window.location.href = '../index.html'; return; }
+  const user = recupererSessionUser();
+  if (!user || user.role !== 'admin') { window.location.href = '../index.html'; return; }
+
+  document.getElementById('admin-entreprise').textContent = State.nomEntreprise || 'Admin';
+
+  // Remplir sélecteurs année
+  await chargerCamions();
+  await chargerGerants();
+  const annees = await chargerAnnees();
+  remplirSelecteursAnnee(annees);
+
+  // Mois actuel par défaut
+  document.getElementById('filtre-mois').value = moisActuel();
+  document.getElementById('valid-mois').value  = moisActuel();
+
+  await chargerBadgeValidations();
+  chargerPageAdmin('dashboard');
+
+  // Navigation
+  document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('actif'));
+      item.classList.add('actif');
+      chargerPageAdmin(item.dataset.page);
+      fermerSidebar();
+    });
+  });
+
+  if (navigator.onLine) verifierAbonnement?.();
+
+  navigator.serviceWorker?.addEventListener('message', (e) => {
+    if (e.data?.type === 'NOTIF_CLICK') {
+      const { data } = e.data;
+      if (data?.type === 'demande_modif' || data?.type === 'validation_demandee') chargerPageAdmin('validations');
+      else if (data?.type === 'nouvelle_course') chargerPageAdmin('courses');
+      else if (data?.type === 'nouvelle_depense') chargerPageAdmin('depenses');
+    }
+  });
+});
+
+function remplirSelecteursAnnee(annees) {
+  const anneeActuelle = new Date().getFullYear();
+  const options = annees.length > 0
+    ? annees.map(a => `<option value="${a.annee}">${a.annee}${a.cloturee ? ' 🔒' : ''}</option>`).join('')
+    : `<option value="${anneeActuelle}">${anneeActuelle}</option>`;
+
+  ['filtre-annee','valid-annee'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = options;
+  });
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────
+function chargerPageAdmin(page) {
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  switch (page) {
+    case 'dashboard':   rafraichirDashboard(); break;
+    case 'camions':     renderAdminCamions(); break;
+    case 'gerant':      renderAdminGerant(); break;
+    case 'courses':     chargerAdminCourses(); break;
+    case 'depenses':    chargerAdminDepenses(); break;
+    case 'validations': chargerAdminValidations(); break;
+    case 'clotures':    chargerAdminClotures(); break;
+    case 'parametres':  chargerPageParametresAdmin(); break;
+  }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+async function rafraichirDashboard() {
+  const periode = document.getElementById('filtre-periode')?.value || 'mois';
+  const annee   = parseInt(document.getElementById('filtre-annee')?.value) || anneeActuelle();
+  const mois    = parseInt(document.getElementById('filtre-mois')?.value) || moisActuel();
+
+  document.getElementById('filtre-mois').style.display = periode === 'mois' ? '' : 'none';
+
+  let debut, fin;
+  if (periode === 'mois') { debut = debutMois(annee, mois); fin = finMois(annee, mois); }
+  else if (periode === 'semestre1') { debut = `${annee}-01-01`; fin = `${annee}-06-30`; }
+  else if (periode === 'semestre2') { debut = `${annee}-07-01`; fin = `${annee}-12-31`; }
+  else { debut = `${annee}-01-01`; fin = `${annee}-12-31`; }
+
+  const stats = await calcStatsGlobales(debut, fin);
+  document.getElementById('admin-total-revenus').textContent  = formatFG(stats.totalRevenu);
+  document.getElementById('admin-total-depenses').textContent = formatFG(stats.totalDepense);
+  const b = document.getElementById('admin-benefice');
+  b.textContent = formatFG(stats.benefice);
+  b.style.color = stats.benefice >= 0 ? 'var(--vert)' : 'var(--rouge)';
+  document.getElementById('admin-en-attente').textContent = stats.coursesEnAttente;
+
+  // Bilan par camion
+  const container = document.getElementById('bilan-camions');
+  if (!State.camions.length) { container.innerHTML = '<div class="empty-state"><div class="icone">🚛</div><p>Aucun camion</p></div>'; return; }
+
+  const statsCamions = await Promise.all(State.camions.map(c => calcStatsCamion(c.id, debut, fin).then(s => ({ ...s, camion: c }))));
+  container.innerHTML = statsCamions.map(s => `
+    <div class="camion-bilan-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div><div class="camion-immat">🚛 ${s.camion.immatriculation}</div><div class="camion-info">${s.camion.marque || ''} ${s.camion.modele || ''} · ${badgeStatutCamionHtml(s.camion.statut)}</div></div>
+        <div class="text-right">
+          <div class="stat-value ${s.benefice >= 0 ? '' : ''}" style="color:${s.benefice >= 0 ? 'var(--vert)' : 'var(--rouge)'}">${formatFG(s.benefice)}</div>
+          <div class="stat-label">Bénéfice net</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div><div class="stat-label">Revenus</div><div style="font-weight:700;color:var(--vert)">${formatFG(s.revenu)}</div></div>
+        <div><div class="stat-label">Dépenses</div><div style="font-weight:700;color:var(--rouge)">${formatFG(s.depense)}</div></div>
+        <div><div class="stat-label">Courses</div><div style="font-weight:700">${s.nbCourses}</div></div>
+        <div><div class="stat-label">Rentabilité</div><div style="font-weight:700">${s.revenu > 0 ? Math.round((s.benefice/s.revenu)*100) : 0}%</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CAMIONS ──────────────────────────────────────────────────
+function renderAdminCamions() {
+  const container = document.getElementById('liste-admin-camions');
+  if (!State.camions.length) { container.innerHTML = '<div class="empty-state"><div class="icone">🚛</div><p>Aucun camion</p></div>'; return; }
+  container.innerHTML = `<div class="tableau-wrapper"><table>
+    <thead><tr><th>Immatriculation</th><th>Marque / Modèle</th><th>Année</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody>${State.camions.map(c => `
+      <tr><td><strong>${c.immatriculation}</strong></td><td>${c.marque || '—'} ${c.modele || ''}</td><td>${c.annee || '—'}</td>
+      <td>${badgeStatutCamionHtml(c.statut)}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick='ouvrirModalCamion(${JSON.stringify(c)})'>✏️</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function ouvrirModalCamion(camion = null) {
+  camionEnEdition = camion;
+  document.getElementById('modal-camion-titre').textContent = camion ? 'Modifier camion' : 'Nouveau camion';
+  document.getElementById('camion-immat').value  = camion?.immatriculation || '';
+  document.getElementById('camion-marque').value = camion?.marque || '';
+  document.getElementById('camion-modele').value = camion?.modele || '';
+  document.getElementById('camion-annee').value  = camion?.annee || '';
+  document.getElementById('camion-statut').value = camion?.statut || 'actif';
+  document.getElementById('modal-camion-overlay').classList.remove('hidden');
+}
+function fermerModalCamion() { document.getElementById('modal-camion-overlay').classList.add('hidden'); camionEnEdition = null; }
+
+document.getElementById('form-camion')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+  try {
+    const payload = {
+      immatriculation: document.getElementById('camion-immat').value.toUpperCase().trim(),
+      marque: document.getElementById('camion-marque').value.trim(),
+      modele: document.getElementById('camion-modele').value.trim(),
+      annee: parseInt(document.getElementById('camion-annee').value) || null,
+      statut: document.getElementById('camion-statut').value,
+    };
+    if (!payload.immatriculation) throw new Error('Immatriculation requise');
+    if (camionEnEdition) { await modifierCamion(camionEnEdition.id, payload); toast('Camion modifié', 'success'); }
+    else { await creerCamion(payload); toast('Camion ajouté !', 'success'); }
+    await chargerCamions();
+    fermerModalCamion();
+    renderAdminCamions();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+  finally { btn.disabled = false; }
+});
+
+// ── GÉRANT ───────────────────────────────────────────────────
+function renderAdminGerant() {
+  const container = document.getElementById('liste-admin-gerant');
+  if (!State.gerants.length) { container.innerHTML = '<div class="empty-state"><div class="icone">👔</div><p>Aucun gérant créé</p></div>'; return; }
+  container.innerHTML = `<div class="tableau-wrapper"><table>
+    <thead><tr><th>Nom</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody>${State.gerants.map(g => `
+      <tr><td><strong>${g.nom} ${g.prenom || ''}</strong></td><td>${g.telephone || '—'}</td>
+      <td>${g.actif ? '<span class="badge badge-payee">Actif</span>' : '<span class="badge badge-verrouillee">Inactif</span>'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick='ouvrirModalGerant(${JSON.stringify(g)})'>✏️</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function ouvrirModalGerant(gerant = null) {
+  gerantEnEdition = gerant;
+  document.getElementById('modal-gerant-titre').textContent = gerant ? 'Modifier gérant' : 'Créer un gérant';
+  document.getElementById('gerant-nom').value    = gerant?.nom || '';
+  document.getElementById('gerant-prenom').value = gerant?.prenom || '';
+  document.getElementById('gerant-tel').value    = gerant?.telephone || '';
+  document.getElementById('gerant-pin').value    = '';
+  document.getElementById('modal-gerant-overlay').classList.remove('hidden');
+}
+function fermerModalGerant() { document.getElementById('modal-gerant-overlay').classList.add('hidden'); gerantEnEdition = null; }
+
+document.getElementById('form-gerant')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+  try {
+    const pin = document.getElementById('gerant-pin').value;
+    const payload = {
+      nom: document.getElementById('gerant-nom').value.trim(),
+      prenom: document.getElementById('gerant-prenom').value.trim(),
+      telephone: document.getElementById('gerant-tel').value.trim(),
+    };
+    if (pin) payload.pin = pin;
+    if (!payload.nom) throw new Error('Nom requis');
+    if (!gerantEnEdition && !pin) throw new Error('PIN requis');
+    if (pin && !/^\d{6}$/.test(pin)) throw new Error('PIN doit être 6 chiffres');
+    if (gerantEnEdition) { await modifierGerant(gerantEnEdition.id, payload); toast('Gérant modifié', 'success'); }
+    else { await creerGerant(payload); toast('Gérant créé !', 'success'); }
+    await chargerGerants();
+    fermerModalGerant();
+    renderAdminGerant();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+  finally { btn.disabled = false; }
+});
+
+// ── COURSES ADMIN ────────────────────────────────────────────
+async function chargerAdminCourses() {
+  toutesLesCoursesAdmin = await chargerCourses();
+  remplirFiltresCamions('filtre-camion-course');
+  renderAdminCourses(toutesLesCoursesAdmin);
+}
+function filtrerCourses() {
+  const camionId = document.getElementById('filtre-camion-course').value;
+  const statut   = document.getElementById('filtre-statut-course').value;
+  let liste = toutesLesCoursesAdmin;
+  if (camionId) liste = liste.filter(c => c.camion_id === camionId);
+  if (statut)   liste = liste.filter(c => c.statut === statut);
+  renderAdminCourses(liste);
+}
+function renderAdminCourses(courses) {
+  const container = document.getElementById('liste-admin-courses');
+  if (!courses.length) { container.innerHTML = '<div class="empty-state"><div class="icone">📦</div><p>Aucune course</p></div>'; return; }
+  container.innerHTML = `<div class="tableau-wrapper"><table>
+    <thead><tr><th>Date</th><th>Trajet</th><th>Client</th><th>Camion</th><th>Montant</th><th>Statut</th><th>Verrou</th><th>Action</th></tr></thead>
+    <tbody>${courses.map(c => `
+      <tr><td>${formatDate(c.date_course)}</td><td>${c.depart} → ${c.arrivee}</td><td>${c.client || '—'}</td>
+      <td>${c.camions?.immatriculation || '—'}</td>
+      <td style="color:var(--vert);font-weight:700">${formatFG(c.montant_facture)}</td>
+      <td>${badgeStatutHtml(c.statut)}</td>
+      <td>${c.locked ? '<span class="badge badge-verrouillee">🔒</span>' : '<span class="badge badge-payee">🔓</span>'}</td>
+      <td>${c.locked && !c.mois_valide
+        ? `<button class="btn btn-secondary btn-sm" onclick="toggleVerrouCourse('${c.id}',false)">🔓</button>`
+        : !c.locked && !c.mois_valide
+        ? `<button class="btn btn-danger btn-sm" onclick="toggleVerrouCourse('${c.id}',true)">🔒</button>`
+        : '—'}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ── DÉPENSES ADMIN ───────────────────────────────────────────
+async function chargerAdminDepenses() {
+  toutesLesDepensesAdmin = await chargerDepenses();
+  remplirFiltresCamions('filtre-camion-depense');
+  renderAdminDepenses(toutesLesDepensesAdmin);
+}
+function filtrerDepenses() {
+  const camionId = document.getElementById('filtre-camion-depense').value;
+  renderAdminDepenses(camionId ? toutesLesDepensesAdmin.filter(d => d.camion_id === camionId) : toutesLesDepensesAdmin);
+}
+function renderAdminDepenses(depenses) {
+  const container = document.getElementById('liste-admin-depenses');
+  if (!depenses.length) { container.innerHTML = '<div class="empty-state"><div class="icone">💸</div><p>Aucune dépense</p></div>'; return; }
+  container.innerHTML = `<div class="tableau-wrapper"><table>
+    <thead><tr><th>Date</th><th>Catégorie</th><th>Description</th><th>Camion</th><th>Montant</th><th>Reçu</th><th>Verrou</th><th>Action</th></tr></thead>
+    <tbody>${depenses.map(d => `
+      <tr><td>${formatDate(d.date_depense)}</td><td><span class="badge badge-${d.categorie}">${labelCategorie(d.categorie)}</span></td>
+      <td>${d.description || '—'}</td><td>${d.camions?.immatriculation || '—'}</td>
+      <td style="color:var(--rouge);font-weight:700">${formatFG(d.montant)}</td>
+      <td>${d.photo_url ? `<a href="${d.photo_url}" target="_blank" style="color:var(--orange)">📷 Voir</a>` : '—'}</td>
+      <td>${d.locked ? '<span class="badge badge-verrouillee">🔒</span>' : '<span class="badge badge-payee">🔓</span>'}</td>
+      <td>${d.locked && !d.mois_valide
+        ? `<button class="btn btn-secondary btn-sm" onclick="toggleVerrouDepense('${d.id}',false)">🔓</button>`
+        : !d.locked && !d.mois_valide
+        ? `<button class="btn btn-danger btn-sm" onclick="toggleVerrouDepense('${d.id}',true)">🔒</button>`
+        : '—'}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ── VALIDATIONS MENSUELLES ───────────────────────────────────
+async function chargerBadgeValidations() {
+  const mois  = moisActuel();
+  const annee = anneeActuelle();
+  const validations = await chargerValidationsMois(annee, mois);
+  const demandees = validations.filter(v => v.statut === 'demandee').length;
+  const badge = document.getElementById('nb-validations');
+  if (demandees > 0) { badge.textContent = demandees; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+}
+
+// ── Modals édition inline admin ──────────────────────────────
+let courseEditAdmin  = null;
+let depenseEditAdmin = null;
+let camionValidAdmin = null;
+
+async function chargerAdminValidations() {
+  const annee = parseInt(document.getElementById('valid-annee')?.value) || anneeActuelle();
+  const mois  = parseInt(document.getElementById('valid-mois')?.value) || moisActuel();
+  const container = document.getElementById('liste-validations');
+  container.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  const validations = await chargerValidationsMois(annee, mois);
+  const validationMap = {};
+  validations.forEach(v => { validationMap[v.camion_id] = v; });
+
+  let html = `<h2 style="margin-bottom:4px;font-weight:700">${nomMois(mois)} ${annee}</h2>
+    <p style="color:var(--gris-clair);font-size:0.85rem;margin-bottom:20px">
+      Seuls les camions dont le gérant a validé son bilan sont disponibles pour validation admin.
+    </p>`;
+
+  let aucunDisponible = true;
+
+  for (const camion of State.camions) {
+    const validation = validationMap[camion.id];
+    const gerantValide = validation?.gerant_valide || false;
+    const adminValide  = validation?.admin_valide  || false;
+
+    const courses  = await chargerCoursesMois(annee, mois, camion.id);
+    const depenses = await chargerDepensesMois(annee, mois, camion.id);
+    const revenu   = courses.reduce((s, c) => s + (Number(c.montant_facture) || 0), 0);
+    const depense  = depenses.reduce((s, d) => s + (Number(d.montant) || 0), 0);
+
+    // Badge double validation
+    const badgeGerant = gerantValide
+      ? '<span class="badge badge-payee">✅ Gérant validé</span>'
+      : '<span class="badge badge-en-cours">⏳ Gérant pas encore validé</span>';
+    const badgeAdmin = adminValide
+      ? '<span class="badge badge-payee">✅ Admin validé</span>'
+      : gerantValide
+      ? '<span class="badge badge-livree">⏳ En attente validation admin</span>'
+      : '<span class="badge badge-verrouillee">🔒 En attente gérant</span>';
+
+    aucunDisponible = false;
+
+    html += `<div class="card" style="margin-bottom:20px;border-left:4px solid ${adminValide ? 'var(--gris-clair)' : gerantValide ? 'var(--orange)' : 'var(--bleu)'}">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+        <div class="camion-immat">🚛 ${camion.immatriculation}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${badgeGerant} ${badgeAdmin}</div>
+      </div>
+
+      <!-- Courses -->
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:8px">📦 Courses (${courses.length})</div>
+        ${courses.length ? `<table class="validation-table">
+          <thead><tr><th>Date</th><th>Trajet</th><th>Client</th><th>Statut</th><th>Montant</th>${!adminValide && gerantValide ? '<th>Actions</th>' : ''}</tr></thead>
+          <tbody>${courses.map(c => `<tr>
+            <td>${formatDate(c.date_course)}</td>
+            <td>${c.depart} → ${c.arrivee}</td>
+            <td>${c.client || '—'}</td>
+            <td>${badgeStatutHtml(c.statut)}</td>
+            <td style="color:var(--vert);font-weight:700">${formatFG(c.montant_facture)}</td>
+            ${!adminValide && gerantValide ? `<td style="white-space:nowrap">
+              <button class="btn btn-secondary btn-sm" onclick="ouvrirEditCourseAdmin(${JSON.stringify(c).replace(/"/g,'&quot;')},'${camion.id}')">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="supprimerCourseAdmin('${c.id}','${camion.id}',${annee},${mois})">🗑️</button>
+            </td>` : ''}
+          </tr>`).join('')}</tbody>
+        </table>` : '<p style="color:var(--gris-clair);font-size:0.85rem;margin-bottom:8px">Aucune course</p>'}
+      </div>
+
+      <!-- Dépenses -->
+      <div style="margin-bottom:16px">
+        <div style="font-weight:700;margin-bottom:8px">💸 Dépenses (${depenses.length})</div>
+        ${depenses.length ? `<table class="validation-table">
+          <thead><tr><th>Date</th><th>Catégorie</th><th>Description</th><th>Montant</th><th>Reçu</th>${!adminValide && gerantValide ? '<th>Actions</th>' : ''}</tr></thead>
+          <tbody>${depenses.map(d => `<tr>
+            <td>${formatDate(d.date_depense)}</td>
+            <td><span class="badge badge-${d.categorie}">${labelCategorie(d.categorie)}</span></td>
+            <td>${d.description || '—'}</td>
+            <td style="color:var(--rouge);font-weight:700">${formatFG(d.montant)}</td>
+            <td>${d.photo_url ? `<a href="${d.photo_url}" target="_blank" style="color:var(--orange)">📷</a>` : '—'}</td>
+            ${!adminValide && gerantValide ? `<td style="white-space:nowrap">
+              <button class="btn btn-secondary btn-sm" onclick="ouvrirEditDepenseAdmin(${JSON.stringify(d).replace(/"/g,'&quot;')},'${camion.id}')">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="supprimerDepenseAdmin('${d.id}','${camion.id}',${annee},${mois})">🗑️</button>
+            </td>` : ''}
+          </tr>`).join('')}</tbody>
+        </table>` : '<p style="color:var(--gris-clair);font-size:0.85rem;margin-bottom:8px">Aucune dépense</p>'}
+      </div>
+
+      <!-- Totaux -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px;background:var(--fond);border-radius:8px;margin-bottom:16px">
+        <div><div class="stat-label">Revenus</div><div style="font-weight:700;color:var(--vert)">${formatFG(revenu)}</div></div>
+        <div><div class="stat-label">Dépenses</div><div style="font-weight:700;color:var(--rouge)">${formatFG(depense)}</div></div>
+        <div><div class="stat-label">Bénéfice</div><div style="font-weight:700;color:${revenu-depense>=0?'var(--vert)':'var(--rouge)'}">${formatFG(revenu-depense)}</div></div>
+      </div>
+
+      <!-- Bouton validation admin -->
+      ${adminValide
+        ? `<div class="alerte alerte-info" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span>✅ Validé définitivement le ${formatDate(validation?.admin_valide_at?.split('T')[0])}${validation?.notes_admin ? '<br>💬 '+validation.notes_admin : ''}</span>
+            <button class="btn btn-danger btn-sm" onclick="deverrouillerMoisAdmin('${validation?.id}','${camion.id}',${annee},${mois})">🔓 Déverrouiller</button>
+           </div>`
+        : `<div class="form-group"><label class="form-label">Note pour le gérant (optionnel)</label>
+            <input type="text" class="input-inline" id="note-${camion.id}" placeholder="Commentaire…" style="max-width:100%" /></div>
+           <button class="btn btn-primary" onclick="validerMoisAdmin('${validation?.id||''}','${camion.id}',${annee},${mois})">
+             🔒 Valider et verrouiller ce mois
+           </button>`
+      }
+    </div>`;
+  }
+
+  if (aucunDisponible) html += '<div class="empty-state"><div class="icone">📋</div><p>Aucun camion enregistré</p></div>';
+  container.innerHTML = html;
+}
+
+// ── Édition inline admin ──────────────────────────────────────
+function ouvrirEditCourseAdmin(course, camionId) {
+  courseEditAdmin  = course;
+  camionValidAdmin = camionId;
+  // Remplir le modal course
+  const select = document.createElement('select');
+  // Utiliser le modal existant
+  ouvrirModalCourseAdmin(course);
+}
+
+function ouvrirModalCourseAdmin(course) {
+  document.getElementById('modal-edit-course-admin-titre').textContent = 'Modifier la course';
+  document.getElementById('edit-course-depart').value    = course.depart || '';
+  document.getElementById('edit-course-arrivee').value   = course.arrivee || '';
+  document.getElementById('edit-course-client').value    = course.client || '';
+  document.getElementById('edit-course-marchandise').value = course.description_marchandise || '';
+  document.getElementById('edit-course-montant').value   = course.montant_facture || '';
+  document.getElementById('edit-course-date').value      = course.date_course || '';
+  document.getElementById('modal-edit-course-admin').classList.remove('hidden');
+}
+
+function ouvrirEditDepenseAdmin(depense, camionId) {
+  depenseEditAdmin = depense;
+  camionValidAdmin = camionId;
+  document.getElementById('modal-edit-depense-admin-titre').textContent = 'Modifier la dépense';
+  document.getElementById('edit-depense-categorie').value  = depense.categorie || 'carburant';
+  document.getElementById('edit-depense-montant').value    = depense.montant || '';
+  document.getElementById('edit-depense-description').value = depense.description || '';
+  document.getElementById('edit-depense-date').value       = depense.date_depense || '';
+  document.getElementById('modal-edit-depense-admin').classList.remove('hidden');
+}
+
+async function supprimerCourseAdmin(id, camionId, annee, mois) {
+  if (!confirm('Supprimer cette course ?')) return;
+  try {
+    await sb.from('courses').delete().eq('id', id);
+    toast('Course supprimée', 'success');
+    chargerAdminValidations();
+    chargerBadgeValidations();
+  } catch { toast('Erreur', 'error'); }
+}
+
+async function supprimerDepenseAdmin(id, camionId, annee, mois) {
+  if (!confirm('Supprimer cette dépense ?')) return;
+  try {
+    await sb.from('depenses').delete().eq('id', id);
+    toast('Dépense supprimée', 'success');
+    chargerAdminValidations();
+  } catch { toast('Erreur', 'error'); }
+}
+
+// ── Validation admin définitive ───────────────────────────────
+async function validerMoisAdmin(validationId, camionId, annee, mois) {
+  const note = document.getElementById(`note-${camionId}`)?.value || '';
+  if (!confirm(`Valider définitivement ${nomMois(mois)} ${annee} pour ce camion ?\nCette action est IRRÉVERSIBLE.`)) return;
+  try {
+    let vId = validationId;
+    if (!vId) {
+      const v = await gerantValiderMois(camionId, annee, mois);
+      vId = v.id;
+    }
+    await validerMois(vId, camionId, annee, mois, note);
+    toast('Mois validé définitivement ! Données verrouillées.', 'success');
+    chargerAdminValidations();
+    chargerBadgeValidations();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+}
+
+async function deverrouillerMoisAdmin(validationId, camionId, annee, mois) {
+  if (!confirm(`Déverrouiller ${nomMois(mois)} ${annee} pour ce camion ?\nLe gérant pourra à nouveau modifier les données.`)) return;
+  try {
+    const debut = debutMois(annee, mois);
+    const fin   = finMois(annee, mois);
+
+    // Déverrouiller courses et dépenses
+    await sb.from('courses').update({ mois_valide: false, locked: false })
+      .eq('licence_cle', State.licenceCle).eq('camion_id', camionId)
+      .gte('date_course', debut).lte('date_course', fin);
+
+    await sb.from('depenses').update({ mois_valide: false, locked: false })
+      .eq('licence_cle', State.licenceCle).eq('camion_id', camionId)
+      .gte('date_depense', debut).lte('date_depense', fin);
+
+    // Réinitialiser la validation
+    await sb.from('validations_mensuelles').update({
+      statut:          'en_attente',
+      admin_valide:    false,
+      admin_valide_at: null,
+      gerant_valide:   false,
+      gerant_valide_at: null,
+      validee_at:      null,
+      validee_par:     null,
+      updated_at:      new Date().toISOString(),
+    }).eq('id', validationId);
+
+    toast('Mois déverrouillé — le gérant peut à nouveau modifier.', 'success');
+    chargerAdminValidations();
+    chargerBadgeValidations();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+}
+
+function fermerModalValidation() { document.getElementById('modal-validation-overlay').classList.add('hidden'); validationEnCours = null; }
+function fermerEditCourseAdmin()  { document.getElementById('modal-edit-course-admin').classList.add('hidden'); courseEditAdmin = null; }
+function fermerEditDepenseAdmin() { document.getElementById('modal-edit-depense-admin').classList.add('hidden'); depenseEditAdmin = null; }
+
+// ── CLÔTURES ANNUELLES ────────────────────────────────────────
+async function chargerAdminClotures() {
+  const annees = await chargerAnnees();
+  const container = document.getElementById('liste-clotures');
+
+  if (!annees.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icone">📅</div><p>Aucune année créée</p></div>';
+    return;
+  }
+
+  container.innerHTML = annees.map(a => `
+    <div class="card" style="margin-bottom:16px;border-left:4px solid ${a.cloturee ? 'var(--gris-clair)' : 'var(--orange)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-weight:900;font-size:1.4rem">${a.annee}</div>
+          ${a.cloturee
+            ? `<span class="badge badge-verrouillee">🔒 Clôturée le ${formatDate(a.cloturee_at?.split('T')[0])}</span>`
+            : '<span class="badge badge-en-cours">🟢 En cours</span>'}
+        </div>
+        ${a.cloturee
+          ? `<div><div style="font-weight:700;color:${a.benefice_net >= 0 ? 'var(--vert)' : 'var(--rouge)'}">${formatFG(a.benefice_net)}</div><div class="stat-label">Bénéfice net</div></div>`
+          : `<button class="btn btn-danger btn-sm" onclick="confirmerCloturerAnnee(${a.annee})">🔒 Clôturer ${a.annee}</button>`}
+      </div>
+      ${a.cloturee ? `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div><div class="stat-label">Revenus</div><div style="font-weight:700;color:var(--vert)">${formatFG(a.total_revenus)}</div></div>
+          <div><div class="stat-label">Dépenses</div><div style="font-weight:700;color:var(--rouge)">${formatFG(a.total_depenses)}</div></div>
+          <div><div class="stat-label">Bénéfice</div><div style="font-weight:700;color:${a.benefice_net >= 0 ? 'var(--vert)' : 'var(--rouge)'}">${formatFG(a.benefice_net)}</div></div>
+        </div>` : ''}
+    </div>`).join('') +
+    `<button class="btn btn-secondary" onclick="creerNouvelleAnnee()">➕ Créer l'année ${new Date().getFullYear() + 1}</button>`;
+}
+
+async function creerNouvelleAnnee() {
+  const annee = new Date().getFullYear() + 1;
+  if (!confirm(`Créer l'année ${annee} ?`)) return;
+  try {
+    await creerAnnee(annee);
+    toast(`Année ${annee} créée !`, 'success');
+    const annees = await chargerAnnees();
+    remplirSelecteursAnnee(annees);
+    chargerAdminClotures();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+}
+
+async function confirmerCloturerAnnee(annee) {
+  if (!confirm(`⚠️ Clôturer définitivement l'année ${annee} ?\n\nTous les mois non encore validés seront verrouillés.\nCette action est IRRÉVERSIBLE.`)) return;
+  try {
+    await cloturerAnnee(annee);
+    toast(`Année ${annee} clôturée !`, 'success');
+    const annees = await chargerAnnees();
+    remplirSelecteursAnnee(annees);
+    chargerAdminClotures();
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+}
+
+// ── VERROUILLAGE ─────────────────────────────────────────────
+async function toggleVerrouCourse(id, locked) {
+  if (!confirm(`${locked ? 'Verrouiller' : 'Déverrouiller'} cette course ?`)) return;
+  try {
+    await sb.from('courses').update({ locked, updated_at: new Date().toISOString() }).eq('id', id);
+    toast(locked ? '🔒 Verrouillée' : '🔓 Déverrouillée', locked ? 'warning' : 'success');
+    chargerAdminCourses();
+  } catch { toast('Erreur', 'error'); }
+}
+async function toggleVerrouDepense(id, locked) {
+  if (!confirm(`${locked ? 'Verrouiller' : 'Déverrouiller'} cette dépense ?`)) return;
+  try {
+    await sb.from('depenses').update({ locked, updated_at: new Date().toISOString() }).eq('id', id);
+    toast(locked ? '🔒 Verrouillée' : '🔓 Déverrouillée', locked ? 'warning' : 'success');
+    chargerAdminDepenses();
+  } catch { toast('Erreur', 'error'); }
+}
+
+// ── PARAMÈTRES ────────────────────────────────────────────────
+function chargerPageParametresAdmin() {
+  document.getElementById('param-admin-username').textContent = State.utilisateur?.nom || '—';
+  document.getElementById('param-admin-licence').textContent  = State.licenceCle || '—';
+  afficherBoutonNotifications?.('notif-container-admin');
+}
+
+document.getElementById('form-changer-code-admin')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const ancien    = document.getElementById('admin-ancien-code').value;
+  const nouveau   = document.getElementById('admin-nouveau-code').value;
+  const confirmer = document.getElementById('admin-confirmer-code').value;
+  if (nouveau !== confirmer) { toast('Les codes ne correspondent pas', 'error'); return; }
+  if (!/^\d{6}$/.test(nouveau)) { toast('Le code doit être 6 chiffres', 'error'); return; }
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    await changerCodeAdmin(State.utilisateur.id, ancien, nouveau);
+    toast('Code changé !', 'success');
+    document.getElementById('admin-ancien-code').value    = '';
+    document.getElementById('admin-nouveau-code').value   = '';
+    document.getElementById('admin-confirmer-code').value = '';
+  } catch (err) { toast(err.message || 'Erreur', 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Changer le code'; }
+});
+
+// ── UTILITAIRES ───────────────────────────────────────────────
+function remplirFiltresCamions(selectId) {
+  const select = document.getElementById(selectId); if (!select) return;
+  const current = select.value;
+  select.innerHTML = `<option value="">Tous les camions</option>` +
+    State.camions.map(c => `<option value="${c.id}" ${current === c.id ? 'selected' : ''}>${c.immatriculation}</option>`).join('');
+}
+function badgeStatutCamionHtml(statut) {
+  return { actif:'<span class="badge badge-payee">✅ Actif</span>', maintenance:'<span class="badge badge-livree">🔧 Maintenance</span>', panne:'<span class="badge badge-verrouillee">❌ Panne</span>', inactif:'<span class="badge badge-verrouillee">⏸️ Inactif</span>' }[statut] || statut;
+}
+function badgeStatutHtml(statut) {
+  return { en_cours:'<span class="badge badge-en-cours">En cours</span>', livree:'<span class="badge badge-livree">Livrée</span>', payee:'<span class="badge badge-payee">Payée</span>' }[statut] || statut;
+}
+function ouvrirSidebar() { document.getElementById('sidebar').classList.add('ouverte'); document.getElementById('overlay-sidebar').style.display = 'block'; }
+function fermerSidebar() { document.getElementById('sidebar').classList.remove('ouverte'); document.getElementById('overlay-sidebar').style.display = 'none'; }
+function confirmerViderCacheAdmin() {
+  if (confirm('Vider le cache et récupérer les dernières mises à jour ?')) {
+    viderCache().then(() => { alert('Cache vidé ! Rechargement…'); location.reload(); });
+  }
+}
+function deconnexionAdmin() { deconnexion(); window.location.href = '../index.html'; }
+
+</script>
+<!-- Modal Edit Course Admin -->
+<div id="modal-edit-course-admin" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:flex-end;z-index:500" onclick="if(event.target===this)fermerEditCourseAdmin()">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:28px 20px 40px;width:100%;max-height:90vh;overflow-y:auto">
+    <h2 style="font-weight:800;font-size:1.2rem;margin-bottom:20px" id="modal-edit-course-admin-titre">Modifier la course</h2>
+    <form id="form-edit-course-admin">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="edit-course-date" /></div>
+      <div class="form-group"><label class="form-label">Départ</label><input type="text" class="form-input" id="edit-course-depart" /></div>
+      <div class="form-group"><label class="form-label">Arrivée</label><input type="text" class="form-input" id="edit-course-arrivee" /></div>
+      <div class="form-group"><label class="form-label">Client</label><input type="text" class="form-input" id="edit-course-client" /></div>
+      <div class="form-group"><label class="form-label">Marchandise</label><input type="text" class="form-input" id="edit-course-marchandise" /></div>
+      <div class="form-group"><label class="form-label">Montant facturé (FG)</label><input type="number" class="form-input" id="edit-course-montant" /></div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Enregistrer</button>
+      <button type="button" class="btn btn-secondary" onclick="fermerEditCourseAdmin()">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Dépense Admin -->
+<div id="modal-edit-depense-admin" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:flex-end;z-index:500" onclick="if(event.target===this)fermerEditDepenseAdmin()">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:28px 20px 40px;width:100%;max-height:90vh;overflow-y:auto">
+    <h2 style="font-weight:800;font-size:1.2rem;margin-bottom:20px" id="modal-edit-depense-admin-titre">Modifier la dépense</h2>
+    <form id="form-edit-depense-admin">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="edit-depense-date" /></div>
+      <div class="form-group"><label class="form-label">Catégorie</label>
+        <select class="form-select" id="edit-depense-categorie">
+          <option value="carburant">⛽ Carburant</option><option value="reparation">🔧 Réparation</option>
+          <option value="peage">🛣️ Péage</option><option value="repas">🍽️ Repas</option><option value="autre">📦 Autre</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Montant (FG)</label><input type="number" class="form-input" id="edit-depense-montant" /></div>
+      <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="edit-depense-description" /></div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:8px">Enregistrer</button>
+      <button type="button" class="btn btn-secondary" onclick="fermerEditDepenseAdmin()">Annuler</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Soumissions formulaires edit admin
+document.getElementById('form-edit-course-admin')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!courseEditAdmin) return;
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    await sb.from('courses').update({
+      depart:                  document.getElementById('edit-course-depart').value.trim(),
+      arrivee:                 document.getElementById('edit-course-arrivee').value.trim(),
+      client:                  document.getElementById('edit-course-client').value.trim(),
+      description_marchandise: document.getElementById('edit-course-marchandise').value.trim(),
+      montant_facture:         parseInt(document.getElementById('edit-course-montant').value) || 0,
+      date_course:             document.getElementById('edit-course-date').value,
+      updated_at:              new Date().toISOString(),
+    }).eq('id', courseEditAdmin.id);
+    toast('Course modifiée', 'success');
+    fermerEditCourseAdmin();
+    chargerAdminValidations();
+  } catch { toast('Erreur', 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+});
+
+document.getElementById('form-edit-depense-admin')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!depenseEditAdmin) return;
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    await sb.from('depenses').update({
+      categorie:    document.getElementById('edit-depense-categorie').value,
+      montant:      parseInt(document.getElementById('edit-depense-montant').value) || 0,
+      description:  document.getElementById('edit-depense-description').value.trim(),
+      date_depense: document.getElementById('edit-depense-date').value,
+      updated_at:   new Date().toISOString(),
+    }).eq('id', depenseEditAdmin.id);
+    toast('Dépense modifiée', 'success');
+    fermerEditDepenseAdmin();
+    chargerAdminValidations();
+  } catch { toast('Erreur', 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+});
+
+// Ouvrir les modals avec display flex
+function ouvrirEditCourseAdmin(course, camionId) {
+  courseEditAdmin  = course;
+  camionValidAdmin = camionId;
+  document.getElementById('edit-course-depart').value    = course.depart || '';
+  document.getElementById('edit-course-arrivee').value   = course.arrivee || '';
+  document.getElementById('edit-course-client').value    = course.client || '';
+  document.getElementById('edit-course-marchandise').value = course.description_marchandise || '';
+  document.getElementById('edit-course-montant').value   = course.montant_facture || '';
+  document.getElementById('edit-course-date').value      = course.date_course || '';
+  document.getElementById('modal-edit-course-admin').style.display = 'flex';
+}
+
+function ouvrirEditDepenseAdmin(depense, camionId) {
+  depenseEditAdmin = depense;
+  camionValidAdmin = camionId;
+  document.getElementById('edit-depense-categorie').value  = depense.categorie || 'carburant';
+  document.getElementById('edit-depense-montant').value    = depense.montant || '';
+  document.getElementById('edit-depense-description').value = depense.description || '';
+  document.getElementById('edit-depense-date').value       = depense.date_depense || '';
+  document.getElementById('modal-edit-depense-admin').style.display = 'flex';
+}
+
+function fermerEditCourseAdmin()  { document.getElementById('modal-edit-course-admin').style.display = 'none'; courseEditAdmin = null; }
+function fermerEditDepenseAdmin() { document.getElementById('modal-edit-depense-admin').style.display = 'none'; depenseEditAdmin = null; }
+</script>
+
+</body>
+</html>
