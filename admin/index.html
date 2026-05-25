@@ -266,8 +266,8 @@ let toutesLesDepensesAdmin = [];
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   // Charger la config Supabase depuis /api/config
-  const configOk = await initSupabase();
-  if (!configOk) { window.location.href = '../index.html'; return; }
+  //const configOk = await initSupabase();
+  //if (!configOk) { window.location.href = '../index.html'; return; }
 
   const licenceOk = await verifierAuDemarrage();
   if (!licenceOk) { window.location.href = '../index.html'; return; }
