@@ -12,11 +12,11 @@ const ANNEE_ACTUELLE = anneeActuelle();
 // ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Charger la config Supabase depuis /api/config (variables d'env Cloudflare)
-  const configOk = await initSupabase();
+/**  const configOk = await initSupabase();
   if (!configOk) {
     document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#e53e3e;text-align:center;padding:2rem"><div><h2>⚠️ Erreur de configuration</h2><p>Impossible de contacter le serveur. Vérifiez votre connexion ou contactez l\'administrateur.</p></div></div>';
     return;
-  }
+  }**/
 
   const licenceOk = await verifierAuDemarrage();
   if (!licenceOk) { afficherEcran('ecran-licence'); return; }
