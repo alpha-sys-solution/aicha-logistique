@@ -5,7 +5,7 @@
 const CACHE_NAME = 'aicha-v5';
 const ASSETS = [
   '/',
-  '/index.html',
+  './index.html',
   '/css/app.css',
   '/js/supabase.js',
   '/js/offline-queue.js',
